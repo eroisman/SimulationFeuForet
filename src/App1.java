@@ -1,15 +1,27 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Scanner;
 
-public class App {
-    
-    public static void main(String[] args) throws Exception {
+public class App1 extends Application {
 
+    private int[][] grid; // La grille du feu
+    private List<CellPosition> initialFireCells;
+    private double fireSpreadProbability;
+    private int rows;
+    private int columns;
+
+    @Override
+    public void start(Stage primaryStage) {
         // Chargement des propriétés à partir du fichier config.properties
         Properties properties = new Properties();
         try {
@@ -20,43 +32,77 @@ public class App {
         }
 
         // Récupération des dimensions de la grille et des autres paramètres
-        int rows = Integer.parseInt(properties.getProperty("grid.rows"));
-        int columns = Integer.parseInt(properties.getProperty("grid.columns"));
-        List<CellPosition> initialFireCells = parseInitialFireCells(properties.getProperty("initial.fire.cells"));
-        double fireSpreadProbability = Double.parseDouble(properties.getProperty("fire.spread.probability"));
+        rows = Integer.parseInt(properties.getProperty("grid.rows"));
+        columns = Integer.parseInt(properties.getProperty("grid.columns"));
+        initialFireCells = parseInitialFireCells(properties.getProperty("initial.fire.cells"));
+        fireSpreadProbability = Double.parseDouble(properties.getProperty("fire.spread.probability"));
 
         // Initialisation de la grille
-        int[][] grid = new int[rows][columns];
+        grid = new int[rows][columns];
         initializeGrid(grid, initialFireCells);
 
-        Scanner scanner = new Scanner(System.in);
-
-        // Boucle principale de simulation du feu
-        boolean fireStillBurning = true;
-        while (fireStillBurning) {
-            // Affichage de la grille à chaque étape
-            displayGrid(grid);
-            System.out.println("Appuyez sur Entrée pour avancer le feu...");
-            scanner.nextLine();
-            advanceFire(grid, fireSpreadProbability);
-
-            // Vérification si le feu est toujours en train de brûler
-            fireStillBurning = hasFire(grid);
-
-            // Si le feu est éteint, afficher la grille une dernière fois avant de quitter la boucle
-            if (!fireStillBurning) {
-                displayGrid(grid);
-            }
-        }
-
-        // Affichage du message final
-        System.out.println("Le feu s'est éteint.");
-
-        scanner.close();
+        // Création de la fenêtre principale
+        primaryStage.setTitle("Simulation de feu de forêt");
+        VBox root = new VBox();
+        root.setSpacing(10);
+        root.setPadding(new Insets(10));
+        Scene scene = new Scene(root, 300, 300);
+        root.getChildren().addAll(createGridPane(), createNextStepButton(scene));
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
+    private GridPane createGridPane() {
+        GridPane gridPane = new GridPane();
+        // Ajouter des éléments de la grille à la grille JavaFX
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[i].length; j++) {
+                // Création d'un élément de grille JavaFX pour chaque cellule
+                Button cell = new Button();
+                // Définir la couleur en fonction de la valeur de la cellule
+                if (grid[i][j] == 0) {
+                    cell.setStyle("-fx-background-color: green;");
+                } else if (grid[i][j] == 1) {
+                    cell.setStyle("-fx-background-color: red;");
+                } else {
+                    cell.setStyle("-fx-background-color: gray;");
+                }
+                gridPane.add(cell, j, i); // Ajouter la cellule à la grille JavaFX
+            }
+        }
+        return gridPane;
+    }
+
+    private Button createNextStepButton(Scene scene) {
+        Button nextStepButton = new Button("Étape suivante");
+        nextStepButton.setOnAction(event -> {
+            advanceFire(grid, fireSpreadProbability);
+            updateGrid(scene);
+        });
+        return nextStepButton;
+    }
+    
+
+    private void updateGrid(Scene scene) {
+        VBox root = (VBox) scene.getRoot();
+        GridPane gridPane = (GridPane) root.getChildren().get(0);
+        // Mettre à jour l'apparence de chaque cellule dans la grille JavaFX
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[i].length; j++) {
+                Button cell = (Button) gridPane.getChildren().get(i * grid[i].length + j);
+                if (grid[i][j] == 0) {
+                    cell.setStyle("-fx-background-color: green;");
+                } else if (grid[i][j] == 1) {
+                    cell.setStyle("-fx-background-color: red;");
+                } else {
+                    cell.setStyle("-fx-background-color: gray;");
+                }
+            }
+        }
+    }    
+
     // Méthode pour analyser les positions initiales du feu à partir de la chaîne de configuration
-    public static List<CellPosition> parseInitialFireCells(String input) {
+    public List<CellPosition> parseInitialFireCells(String input) {
         List<CellPosition> initialFireCells = new ArrayList<>();
         input = input.replaceAll("\\(", "").replaceAll("\\)", "");
         String[] positions = input.split("\\),");
@@ -72,14 +118,14 @@ public class App {
     }
 
     // Méthode pour initialiser la grille avec les positions initiales du feu
-    public static void initializeGrid(int[][] grid, List<CellPosition> initialFireCells) {
+    public void initializeGrid(int[][] grid, List<CellPosition> initialFireCells) {
         for (CellPosition position : initialFireCells) {
             grid[position.row][position.col] = 1; // 1 représente une case en feu
         }
     }
 
     // Méthode pour faire avancer le feu dans la grille
-    public static void advanceFire(int[][] grid, double probability) {
+    public void advanceFire(int[][] grid, double probability) {
         int[][] tempGrid = new int[grid.length][grid[0].length];
         Random random = new Random();
 
@@ -113,28 +159,6 @@ public class App {
         }
     }
 
-    // Méthode pour vérifier si des cases en feu sont encore présentes dans la grille
-    public static boolean hasFire(int[][] grid) {
-        for (int[] row : grid) {
-            for (int cell : row) {
-                if (cell == 1) {
-                    return true; // Si une case en feu est trouvée, retourne vrai
-                }
-            }
-        }
-        return false; // Si aucune case en feu n'est trouvée, retourne faux
-    }
-
-    // Méthode pour afficher la grille
-    public static void displayGrid(int[][] grid) {
-        for (int[] row : grid) {
-            for (int cell : row) {
-                System.out.print(cell + " "); // Affichage de la valeur de chaque case
-            }
-            System.out.println(); // Saut de ligne à la fin de chaque ligne de la grille
-        }
-    }
-
     // Classe interne représentant la position d'une cellule dans la grille
     static class CellPosition {
         int row; // Ligne de la cellule
@@ -145,5 +169,9 @@ public class App {
             this.row = row;
             this.col = col;
         }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
