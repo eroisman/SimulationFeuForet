@@ -1,16 +1,20 @@
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Optional;
 
 public class App1 extends Application {
 
@@ -78,10 +82,12 @@ public class App1 extends Application {
         nextStepButton.setOnAction(event -> {
             advanceFire(grid, fireSpreadProbability);
             updateGrid(scene);
+            if (!hasFire(grid)) {
+                showEndAlert(scene);
+            }
         });
         return nextStepButton;
     }
-    
 
     private void updateGrid(Scene scene) {
         VBox root = (VBox) scene.getRoot();
@@ -99,7 +105,34 @@ public class App1 extends Application {
                 }
             }
         }
+    }
+
+    private void showEndAlert(Scene scene) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Simulation de feu de forêt");
+        alert.setHeaderText("Le feu s'est éteint.");
+        alert.setContentText("Que voulez-vous faire ?");
+    
+        ButtonType restartButton = new ButtonType("Recommencer");
+        ButtonType cancelButton = new ButtonType("Annuler");
+    
+        alert.getButtonTypes().setAll(restartButton, cancelButton);
+    
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == restartButton) {
+            grid = resetGrid(); // Met à jour la grille avec la nouvelle grille retournée par resetGrid()
+            updateGrid(scene);
+        } else {
+            Stage stage = (Stage) scene.getWindow();
+            stage.close();
+        }
     }    
+    
+    private int[][] resetGrid() {
+        int[][] newGrid = new int[rows][columns];
+        initializeGrid(newGrid, initialFireCells);
+        return newGrid;
+    }      
 
     // Méthode pour analyser les positions initiales du feu à partir de la chaîne de configuration
     public List<CellPosition> parseInitialFireCells(String input) {
@@ -157,6 +190,18 @@ public class App1 extends Application {
         for (int i = 0; i < grid.length; i++) {
             System.arraycopy(tempGrid[i], 0, grid[i], 0, grid[i].length);
         }
+    }
+
+    // Méthode pour vérifier si des cases en feu sont encore présentes dans la grille
+    public boolean hasFire(int[][] grid) {
+        for (int[] row : grid) {
+            for (int cell : row) {
+                if (cell == 1) {
+                    return true; // Si une case en feu est trouvée, retourne vrai
+                }
+            }
+        }
+        return false; // Si aucune case en feu n'est trouvée, retourne faux
     }
 
     // Classe interne représentant la position d'une cellule dans la grille
