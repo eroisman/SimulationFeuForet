@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -16,6 +17,8 @@ public class App extends Application {
         GridPane gridPane = new GridPane();
         Button nextStepButton = new Button("Étape suivante");
         VBox root = new VBox();
+        root.setSpacing(10);
+        root.setPadding(new Insets(10));
         root.getChildren().addAll(gridPane, nextStepButton);
         Scene scene = new Scene(root, 300, 300);
         primaryStage.setScene(scene);
