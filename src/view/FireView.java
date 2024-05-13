@@ -40,7 +40,7 @@ public class FireView {
 
     public void showEndAlert() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Simulation de la propagation d'un feu de forêt");
+        alert.setTitle("Simulation de propagation de feu de forêt");
         alert.setHeaderText("Le feu s'est éteint.");
         alert.setContentText("Que voulez-vous faire ?");
 
