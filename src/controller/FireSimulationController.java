@@ -1,15 +1,16 @@
 package controller;
 
-public class FireController {
-    private model.FireModel model;
-    private view.FireView view;
+public class FireSimulationController {
+    private model.FireSimulationModel model;
+    private view.FireSimulationView view;
 
-    public FireController(model.FireModel model, view.FireView view) {
+    public FireSimulationController(model.FireSimulationModel model, view.FireSimulationView view) {
         this.model = model;
         this.view = view;
         init();
     }
 
+    // Initialisation du contrôleur
     private void init() {
         // Mise à jour de la grille au démarrage
         view.updateGrid(model.getGrid());

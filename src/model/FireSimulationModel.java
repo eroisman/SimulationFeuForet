@@ -7,18 +7,20 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-public class FireModel {
-    private int[][] grid;
-    private double fireSpreadProbability;
-    private List<CellPosition> initialFireCells;
-    private int rows;
-    private int columns;
+public class FireSimulationModel {
+    private int[][] grid; // Grille représentant l'état du feu
+    private double fireSpreadProbability; // Probabilité de propagation du feu
+    private List<CellPosition> initialFireCells; // Liste des positions initiales du feu
+    private int rows; // Nombre de lignes dans la grille
+    private int columns; // Nombre de colonnes dans la grille
 
-    public FireModel() {
-        loadProperties();
-        initializeGrid();
+    // Constructeur
+    public FireSimulationModel() {
+        loadProperties(); // Charge les propriétés à partir du fichier config.properties
+        initializeGrid(); // Initialise la grille
     }
 
+    // Charge les propriétés à partir du fichier config.properties
     private void loadProperties() {
         Properties properties = new Properties();
         try {
@@ -32,6 +34,7 @@ public class FireModel {
         }
     }
 
+    // Analyse les positions initiales du feu à partir de la chaîne de configuration
     public List<CellPosition> parseInitialFireCells(String input) {
         List<CellPosition> initialFireCells = new ArrayList<>();
         input = input.replaceAll("\\(", "").replaceAll("\\)", "");
@@ -47,6 +50,7 @@ public class FireModel {
         return initialFireCells;
     }
 
+    // Initialise la grille avec les positions initiales du feu
     public void initializeGrid() {
         grid = new int[rows][columns];
         for (CellPosition position : initialFireCells) {
@@ -54,6 +58,7 @@ public class FireModel {
         }
     }
 
+    // Fait avancer le feu dans la grille
     public void advanceFire() {
         int[][] tempGrid = new int[rows][columns];
         Random random = new Random();
@@ -63,6 +68,7 @@ public class FireModel {
                 if (grid[i][j] == 1) {
                     tempGrid[i][j] = 2; // 2 représente une cellule brûlée
 
+                    // Propagation du feu aux cases adjacentes avec une probabilité
                     if (i > 0 && grid[i - 1][j] == 0 && random.nextDouble() < fireSpreadProbability) {
                         tempGrid[i - 1][j] = 1;
                     }
@@ -84,6 +90,7 @@ public class FireModel {
         grid = tempGrid;
     }
 
+    // Vérifie si la grille contient encore des cases en feu
     public boolean hasFire() {
         for (int[] row : grid) {
             for (int cell : row) {
@@ -95,18 +102,22 @@ public class FireModel {
         return false; // S'il n'y a aucune case en feu, retourne faux
     }
 
+    // Renvoie la grille actuelle
     public int[][] getGrid() {
         return grid;
     }
 
+    // Renvoie la probabilité de propagation du feu
     public double getFireSpreadProbability() {
         return fireSpreadProbability;
     }
 
+    // Classe interne représentant la position d'une cellule dans la grille
     public static class CellPosition {
-        int row;
-        int col;
+        int row; // Ligne de la cellule
+        int col; // Colonne de la cellule
 
+        // Constructeur de la classe
         public CellPosition(int row, int col) {
             this.row = row;
             this.col = col;
