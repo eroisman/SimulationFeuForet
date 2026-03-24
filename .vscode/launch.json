@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "SimulationFeuForet_6dcee6c2"
+        },
+        {
+            "type": "java",
             "name": "FireSimulationGUI",
             "request": "launch",
             "mainClass": "App",

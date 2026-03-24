@@ -1,11 +1,14 @@
 package model;
 
+import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FireSimulationModel {
     private int[][] grid; // Grille représentant l'état du feu
@@ -23,30 +26,40 @@ public class FireSimulationModel {
     // Charge les propriétés à partir du fichier config.properties
     private void loadProperties() {
         Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream("C:\\Projets\\SimulationFeuForet\\src\\resources\\config.properties"));
-            rows = Integer.parseInt(properties.getProperty("grid.rows"));
-            columns = Integer.parseInt(properties.getProperty("grid.columns"));
-            initialFireCells = parseInitialFireCells(properties.getProperty("initial.fire.cells"));
-            fireSpreadProbability = Double.parseDouble(properties.getProperty("fire.spread.probability"));
+        setDefaultConfiguration();
+
+        try (InputStream configStream = openConfigStream()) {
+            if (configStream == null) {
+                return;
+            }
+
+            properties.load(configStream);
+            rows = parseIntegerProperty(properties, "grid.rows", rows);
+            columns = parseIntegerProperty(properties, "grid.columns", columns);
+            initialFireCells = parseInitialFireCells(properties.getProperty("initial.fire.cells", "(0;0)"));
+            fireSpreadProbability = parseDoubleProperty(properties, "fire.spread.probability", fireSpreadProbability);
+            fireSpreadProbability = Math.max(0.0, Math.min(1.0, fireSpreadProbability));
         } catch (IOException e) {
-            e.printStackTrace();
+            setDefaultConfiguration();
         }
     }
 
     // Analyse les positions initiales du feu à partir de la chaîne de configuration
     public List<CellPosition> parseInitialFireCells(String input) {
         List<CellPosition> initialFireCells = new ArrayList<>();
-        input = input.replaceAll("\\(", "").replaceAll("\\)", "");
-        String[] positions = input.split("\\),");
-        for (String position : positions) {
-            String[] coordinates = position.trim().split("[;,]");
-            for (int i = 0; i < coordinates.length; i += 2) {
-                int row = Integer.parseInt(coordinates[i]);
-                int col = Integer.parseInt(coordinates[i + 1]);
-                initialFireCells.add(new CellPosition(row, col));
-            }
+        if (input == null || input.isBlank()) {
+            return initialFireCells;
         }
+
+        Pattern pattern = Pattern.compile("\\((\\d+)\\s*[;,]\\s*(\\d+)\\)");
+        Matcher matcher = pattern.matcher(input);
+
+        while (matcher.find()) {
+            int row = Integer.parseInt(matcher.group(1));
+            int col = Integer.parseInt(matcher.group(2));
+            initialFireCells.add(new CellPosition(row, col));
+        }
+
         return initialFireCells;
     }
 
@@ -54,7 +67,9 @@ public class FireSimulationModel {
     public void initializeGrid() {
         grid = new int[rows][columns];
         for (CellPosition position : initialFireCells) {
-            grid[position.row][position.col] = 1; // 1 représente une cellule en feu
+            if (position.row >= 0 && position.row < rows && position.col >= 0 && position.col < columns) {
+                grid[position.row][position.col] = 1; // 1 représente une cellule en feu
+            }
         }
     }
 
@@ -110,6 +125,65 @@ public class FireSimulationModel {
     // Renvoie la probabilité de propagation du feu
     public double getFireSpreadProbability() {
         return fireSpreadProbability;
+    }
+
+    private InputStream openConfigStream() throws IOException {
+        InputStream classpathStream = FireSimulationModel.class.getClassLoader().getResourceAsStream("resources/config.properties");
+        if (classpathStream != null) {
+            return classpathStream;
+        }
+
+        String[] fallbackPaths = {
+            "src/resources/config.properties",
+            "resources/config.properties"
+        };
+
+        for (String path : fallbackPaths) {
+            try {
+                return new FileInputStream(path);
+            } catch (IOException ignored) {
+                // Essaie le chemin suivant
+            }
+        }
+
+        return null;
+    }
+
+    private int parseIntegerProperty(Properties properties, String key, int defaultValue) {
+        String value = properties.getProperty(key);
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private double parseDoubleProperty(Properties properties, String key, double defaultValue) {
+        String value = properties.getProperty(key);
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private void setDefaultConfiguration() {
+        rows = 9;
+        columns = 9;
+        fireSpreadProbability = 0.5;
+        initialFireCells = new ArrayList<>();
+        initialFireCells.add(new CellPosition(8, 8));
+        initialFireCells.add(new CellPosition(4, 0));
+        initialFireCells.add(new CellPosition(5, 4));
+        initialFireCells.add(new CellPosition(6, 6));
     }
 
     // Classe interne représentant la position d'une cellule dans la grille
