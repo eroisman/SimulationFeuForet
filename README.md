@@ -67,6 +67,27 @@ Adaptez le chemin à votre installation locale.
 3. Si vous lancez sans Maven, configurer les arguments VM JavaFX (Run/Debug).
 4. Lancer `App.java`.
 
+## Quick Start (VS Code + Maven)
+
+Si le projet compile avec Maven mais que VS Code affiche encore des erreurs (ex: `javafx cannot be resolved`) :
+
+1. Ouvrir la palette de commandes (`Ctrl+Shift+P`).
+2. Exécuter `Java: Clean Java Language Server Workspace`.
+3. Recharger la fenêtre VS Code (`Developer: Reload Window`).
+4. Dans un terminal à la racine du projet, lancer :
+
+```bash
+mvn clean compile
+```
+
+1. Lancer ensuite l’application :
+
+```bash
+mvn javafx:run
+```
+
+Cette séquence resynchronise généralement les dépendances JavaFX dans l’éditeur.
+
 ## Lancement en ligne de commande (Windows)
 
 Depuis la racine du projet :
