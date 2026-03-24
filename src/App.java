@@ -1,6 +1,6 @@
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 public class App extends Application {
     private model.FireSimulationModel model; // Modèle de simulation de feu
     private view.FireSimulationView view; // Vue de la simulation de feu
+    @SuppressWarnings("unused")
     private controller.FireSimulationController controller; // Contrôleur de la simulation de feu
 
     // Méthode principale de l'application JavaFX

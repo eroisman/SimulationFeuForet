@@ -1,8 +1,8 @@
 package model;
 
-import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -20,7 +20,7 @@ public class FireSimulationModel {
     // Constructeur
     public FireSimulationModel() {
         loadProperties(); // Charge les propriétés à partir du fichier config.properties
-        initializeGrid(); // Initialise la grille
+        initializeGridInternal(); // Initialise la grille
     }
 
     // Charge les propriétés à partir du fichier config.properties
@@ -46,9 +46,9 @@ public class FireSimulationModel {
 
     // Analyse les positions initiales du feu à partir de la chaîne de configuration
     public List<CellPosition> parseInitialFireCells(String input) {
-        List<CellPosition> initialFireCells = new ArrayList<>();
+        List<CellPosition> positions = new ArrayList<>();
         if (input == null || input.isBlank()) {
-            return initialFireCells;
+            return positions;
         }
 
         Pattern pattern = Pattern.compile("\\((\\d+)\\s*[;,]\\s*(\\d+)\\)");
@@ -57,14 +57,18 @@ public class FireSimulationModel {
         while (matcher.find()) {
             int row = Integer.parseInt(matcher.group(1));
             int col = Integer.parseInt(matcher.group(2));
-            initialFireCells.add(new CellPosition(row, col));
+            positions.add(new CellPosition(row, col));
         }
 
-        return initialFireCells;
+        return positions;
     }
 
     // Initialise la grille avec les positions initiales du feu
     public void initializeGrid() {
+        initializeGridInternal();
+    }
+
+    private void initializeGridInternal() {
         grid = new int[rows][columns];
         for (CellPosition position : initialFireCells) {
             if (position.row >= 0 && position.row < rows && position.col >= 0 && position.col < columns) {

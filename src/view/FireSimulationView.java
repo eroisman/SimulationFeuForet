@@ -7,9 +7,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.GridPane;
 
 public class FireSimulationView {
-    private GridPane gridPane; // Grille d'affichage
-    private Button nextStepButton; // Bouton "Étape suivante"
-    private model.FireSimulationModel model; // Modèle de simulation de feu
+    private final GridPane gridPane; // Grille d'affichage
+    private final Button nextStepButton; // Bouton "Étape suivante"
+    private final model.FireSimulationModel model; // Modèle de simulation de feu
 
     // Constructeur de la vue
     public FireSimulationView(GridPane gridPane, Button nextStepButton, model.FireSimulationModel model) {
@@ -24,13 +24,12 @@ public class FireSimulationView {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[i].length; j++) {
                 Button cell = new Button();
-                if (grid[i][j] == 0) {
-                    cell.setStyle("-fx-background-color: green;"); // Couleur des cellules sans feu
-                } else if (grid[i][j] == 1) {
-                    cell.setStyle("-fx-background-color: red;"); // Couleur des cellules en feu
-                } else {
-                    cell.setStyle("-fx-background-color: gray;"); // Couleur des cellules éteintes
-                }
+                String color = switch (grid[i][j]) {
+                    case 0 -> "green"; // Couleur des cellules sans feu
+                    case 1 -> "red"; // Couleur des cellules en feu
+                    default -> "gray"; // Couleur des cellules éteintes
+                };
+                cell.setStyle("-fx-background-color: " + color + ";");
                 gridPane.add(cell, j, i);
             }
         }

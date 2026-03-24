@@ -1,8 +1,8 @@
 package controller;
 
 public class FireSimulationController {
-    private model.FireSimulationModel model;
-    private view.FireSimulationView view;
+    private final model.FireSimulationModel model;
+    private final view.FireSimulationView view;
 
     public FireSimulationController(model.FireSimulationModel model, view.FireSimulationView view) {
         this.model = model;
